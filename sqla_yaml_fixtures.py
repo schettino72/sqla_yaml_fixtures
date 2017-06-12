@@ -31,15 +31,38 @@ def _create_obj(ModelBase, store, model_name, key, values):
     '''
     # get reference to SqlAlchemy Mapper
     model = ModelBase._decl_class_registry[model_name]
+
+    # scalars will be passed to mapper __init__
     scalars = {}
+
+    # Nested data will be created after container object,
+    # container object reference is found by back_populates
+    # each element is a tuple (model-name, field_name, value)
+    nested = []
+
     for name, value in values.items():
         column = getattr(getattr(model, name), 'property')
         if column and isinstance(column, RelationshipProperty):
-            scalars[name] = store.get(value)
+            rel_name = column.mapper.class_.__name__
+            if isinstance(value, dict):
+                nested.append([rel_name, column.back_populates, value])
+            else:
+                # a reference (key) was passed, get obj from store
+                if isinstance(value, str):
+                    scalars[name] = store.get(value)
+                else:
+                    # nested field which object was just created
+                    scalars[name] = value
+
         else:
             scalars[name] = value
 
     obj = model(**scalars)
+
+    # add a nested objects with reference to parent
+    for rel_name, back_populates, value in nested:
+        value[back_populates] = obj
+        _create_obj(ModelBase, store, rel_name, None, value)
 
     # save obj in store
     if key:

@@ -124,3 +124,18 @@ Profile:
     assert len(users) == 1
     assert users[0].profile.name == 'Jeffrey'
 
+
+def test_insert_nested(session):
+    fixture = """
+User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile.name == 'Jeffrey'
+
