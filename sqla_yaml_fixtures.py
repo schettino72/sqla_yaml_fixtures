@@ -41,7 +41,11 @@ def _create_obj(ModelBase, store, model_name, key, values):
     nested = []
 
     for name, value in values.items():
-        column = getattr(getattr(model, name), 'property')
+        try:
+            column = getattr(getattr(model, name), 'property')
+        except AttributeError:
+            # passing a name that is used in constructor but not column
+            column = None
         if column and isinstance(column, RelationshipProperty):
             rel_name = column.mapper.class_.__name__
             if isinstance(value, dict):
@@ -73,7 +77,7 @@ def _create_obj(ModelBase, store, model_name, key, values):
 
 def load(ModelBase, session, fixture_text):
     data = yaml.load(fixture_text)
-    store = Store() # key-value
+    store = Store()
     for model_name, instances in data.items():
         for fields in instances:
             key = fields.pop('__key__', None)

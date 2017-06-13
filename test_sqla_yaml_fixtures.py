@@ -19,6 +19,7 @@ class User(BaseModel):
     username = Column(String(150), nullable=False, unique=True)
     email = Column(String(254), unique=True)
 
+
 class Profile(BaseModel):
     __tablename__ = 'profile'
     id = Column(Integer, primary_key=True)
@@ -32,6 +33,10 @@ class Profile(BaseModel):
         backref=backref('profile', uselist=False, cascade='all, delete-orphan'),
     )
 
+    def __init__(self, nickname=None, **kwargs):
+        if nickname is not None and "name" not in kwargs:
+            self.name = nickname
+        super(Profile, self).__init__(**kwargs)
 
 
 
@@ -139,3 +144,17 @@ User:
     assert len(users) == 1
     assert users[0].profile.name == 'Jeffrey'
 
+
+def test_init_param(session):
+    fixture = """
+User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      nickname: Joey
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile.name == 'Joey'
