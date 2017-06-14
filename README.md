@@ -6,7 +6,7 @@ This package allows you to define some data in YAML and load them into a DB. The
 
 Example:
 
-```
+```YAML
 User:
   - __key__: joey
     username: joey
@@ -52,7 +52,7 @@ Where:
 - `fixture_text` is a string containg the YAML fixtures
 
 
-```
+```Python
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
