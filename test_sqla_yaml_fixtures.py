@@ -41,6 +41,32 @@ class Profile(BaseModel):
         super(Profile, self).__init__(**kwargs)
 
 
+class Group(BaseModel):
+    __tablename__ = 'group'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+
+
+class GroupMember(BaseModel):
+    __tablename__ = 'group_member'
+    id = Column(Integer, primary_key=True)
+    group_id = Column(
+        ForeignKey('group.id', deferrable=True, initially='DEFERRED'),
+        nullable=False, index=True)
+    profile_id = Column(
+        ForeignKey('profile.id', deferrable=True, initially='DEFERRED'),
+        nullable=False, index=True)
+
+    group = relationship(
+        'Group',
+        backref=backref('members', cascade='all, delete-orphan'),
+    )
+    profile = relationship(
+        'Profile',
+        backref=backref('groups', lazy='dynamic'),
+    )
+
+
 
 #################################################
 
@@ -177,3 +203,24 @@ Profile:
     users = session.query(User).all()
     assert len(users) == 1
     assert users[0].profile.name == 'Jeffrey'
+
+
+
+def test_2many(session):
+    fixture = """
+User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+
+Group:
+  - name: Ramones
+    members: [joey.profile]
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    groups = session.query(Group).all()
+    assert len(groups) == 1
+    assert groups[0].members[0].profile.name == 'Jeffrey'
+    assert groups[0].members[0].profile.groups[0].group.name == 'Ramones'
