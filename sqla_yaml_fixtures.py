@@ -1,4 +1,5 @@
 import yaml
+import sqlalchemy
 from sqlalchemy.orm.relationships import RelationshipProperty
 
 
@@ -44,22 +45,29 @@ def _create_obj(ModelBase, store, model_name, key, values):
         try:
             column = getattr(getattr(model, name), 'property')
         except AttributeError:
-            # passing a name that is used in constructor but not column
-            column = None
-        if column and isinstance(column, RelationshipProperty):
-            rel_name = column.mapper.class_.__name__
+            # __init__ param that is not a column
             if isinstance(value, dict):
-                nested.append([rel_name, column.back_populates, value])
+                scalars[name] = store.get(value['ref'])
             else:
-                # a reference (key) was passed, get obj from store
-                if isinstance(value, str):
-                    scalars[name] = store.get(value)
-                else:
-                    # nested field which object was just created
-                    scalars[name] = value
+                scalars[name] = value
+            continue
 
-        else:
+        # simple value assignemnt
+        if not isinstance(column, RelationshipProperty):
             scalars[name] = value
+            continue
+
+        # relationship
+        rel_name = column.mapper.class_.__name__
+        if isinstance(value, dict):
+            nested.append([rel_name, column.back_populates, value])
+        else:
+            # a reference (key) was passed, get obj from store
+            if isinstance(value, str):
+                scalars[name] = store.get(value)
+            else:
+                # nested field which object was just created
+                scalars[name] = value
 
     obj = model(**scalars)
 
@@ -76,6 +84,9 @@ def _create_obj(ModelBase, store, model_name, key, values):
 
 
 def load(ModelBase, session, fixture_text):
+    # make sure backref attributes are created
+    sqlalchemy.orm.configure_mappers()
+
     data = yaml.load(fixture_text)
     store = Store()
     for model_name, instances in data.items():
