@@ -1,8 +1,12 @@
 from setuptools import setup
 
+def readme():
+    with open('README.rst') as fp:
+        return fp.read()
+
 setup(name = 'sqla_yaml_fixtures',
       description = 'Load YAML data fixtures for SQLAlchemy',
-      version = '0.1.1',
+      version = '0.1.2',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -18,5 +22,5 @@ setup(name = 'sqla_yaml_fixtures',
         ],
       py_modules = ['sqla_yaml_fixtures'],
       install_requires = ['SQLAlchemy', 'PyYAML'],
-      long_description = '',
+      long_description = readme(),
       )
