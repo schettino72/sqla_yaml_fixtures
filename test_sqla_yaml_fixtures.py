@@ -224,3 +224,37 @@ Group:
     assert len(groups) == 1
     assert groups[0].members[0].profile.name == 'Jeffrey'
     assert groups[0].members[0].profile.groups[0].group.name == 'Ramones'
+
+
+def test_doc_sample(session):
+    # test the example used in the docs
+    fixture = """
+User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+
+  - __key__: dee
+    username: deedee
+    email: deedee@example.com
+
+Profile:
+  - user: dee
+    name: Douglas
+
+Group:
+  - name: Ramones
+    members: [joey.profile, dee.profile]
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    groups = session.query(Group).all()
+    assert len(groups) == 1
+    assert groups[0].name == 'Ramones'
+    users = session.query(User).all()
+    assert len(users) == 2
+    assert users[0].profile.groups[0].group.name == 'Ramones'
+    assert users[0].username == 'joey'
+    assert users[0].profile.name == 'Jeffrey'
+
