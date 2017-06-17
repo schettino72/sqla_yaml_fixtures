@@ -1,11 +1,17 @@
 __version__ = (0, 1, 2)
 
-import functools
+try:
+    # Python 3
+    from functools import lru_cache
+except ImportError:
+    # For Python 2: 
+    # use https://pypi.python.org/pypi/backports.functools_lru_cache
+    # pip install backports.functools_lru_cache
+    from backports.functools_lru_cache import lru_cache
 
 import yaml
 import sqlalchemy
 from sqlalchemy.orm.relationships import RelationshipProperty
-
 
 
 class Store:
@@ -30,11 +36,11 @@ class Store:
         self._store[key] = value
 
 
-@functools.lru_cache()
+@lru_cache()
 def _get_rel_col_for(src_model, target_model_name):
     '''find the column in src_model that is a relationship to target_model
     @return column name
-'''
+    '''
     #FIXME deal with self-referential m2m
     for name, col in src_model._sa_class_manager.items():
         try:
@@ -131,4 +137,3 @@ def load(ModelBase, session, fixture_text):
             obj = _create_obj(ModelBase, store, model_name, key, fields)
             session.add(obj)
     session.commit()
-
