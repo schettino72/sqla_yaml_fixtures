@@ -7,8 +7,10 @@ Load YAML data fixtures for SQLAlchemy
    :target: https://pypi.python.org/pypi/sqla_yaml_fixtures
 
 .. image:: https://img.shields.io/pypi/l/sqla_yaml_fixtures.svg
+   :target: https://pypi.python.org/pypi/sqla_yaml_fixtures
 
 .. image:: https://img.shields.io/pypi/pyversions/sqla_yaml_fixtures.svg
+   :target: https://pypi.python.org/pypi/sqla_yaml_fixtures
 
 .. image:: https://api.shippable.com/projects/5945f25f4fdc63070017442d/badge?branch=master
    :target: https://app.shippable.com/github/schettino72/sqla_yaml_fixtures
