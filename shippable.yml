@@ -1,7 +1,6 @@
 language: python
 
 python:
-  - 3.5
   - 3.6
 
 
@@ -9,9 +8,10 @@ build:
   ci:
     - pip install .
     - pip install -r requirements-dev.txt
+    - pip install pytest-cov
 
     # Create folders for test result
     - mkdir -p shippable/testresults
 
     - doit # pyflakes
-    - pytest --junitxml=shippable/testresults/tests.xml
+    - pytest --junitxml=shippable/testresults/tests.xml  --cov-branch --cov=sqla_yaml_fixtures --cov=test_sqla_yaml_fixtures  --cov-report=xml:shippable/codecoverage/coverage.xml
