@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - 3.5
+  - 3.6
+
+
+build:
+  ci:
+    - pip install .
+    - pip install -r requirements-dev.txt
+
+    # Create folders for test result
+    - mkdir -p shippable/testresults
+
+    - doit # pyflakes
+    - pytest --junitxml=shippable/testresults/tests.xml
