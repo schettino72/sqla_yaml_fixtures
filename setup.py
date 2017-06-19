@@ -25,8 +25,10 @@ setup(name = 'sqla_yaml_fixtures',
       py_modules = ['sqla_yaml_fixtures'],
       install_requires = [
           'SQLAlchemy',
-          'PyYAML',
-          'backports.functools_lru_cache;python_version<"3.0"'
+          'PyYAML'
       ],
+      extras_require={
+          ':python_version=="2.7"': ['backports.functools_lru_cache'],
+      },
       long_description = readme(),
       )
