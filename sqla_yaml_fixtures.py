@@ -132,6 +132,9 @@ def load(ModelBase, session, fixture_text):
     data = yaml.load(fixture_text)
     store = Store()
     for model_name, instances in data.items():
+        if not isinstance(instances, list):
+            msg = '`{}` should contain a list.'
+            raise ValueError(msg.format(model_name))
         for fields in instances:
             key = fields.pop('__key__', None)
             obj = _create_obj(ModelBase, store, model_name, key, fields)
