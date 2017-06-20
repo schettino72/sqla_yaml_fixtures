@@ -13,6 +13,7 @@ import sqla_yaml_fixtures
 
 BaseModel = declarative_base()
 
+
 class User(BaseModel):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
@@ -30,7 +31,8 @@ class Profile(BaseModel):
         unique=True)
     user = relationship(
         'User', uselist=False,
-        backref=backref('profile', uselist=False, cascade='all, delete-orphan'),
+        backref=backref('profile', uselist=False,
+                        cascade='all, delete-orphan'),
     )
 
     def __init__(self, nickname=None, the_user=None, **kwargs):
@@ -67,7 +69,6 @@ class GroupMember(BaseModel):
     )
 
 
-
 #################################################
 
 # fixtures based on
@@ -76,11 +77,13 @@ class GroupMember(BaseModel):
 def engine():
     return create_engine('sqlite://')
 
+
 @pytest.fixture(scope='session')
 def tables(engine):
     BaseModel.metadata.create_all(engine)
     yield
     BaseModel.metadata.drop_all(engine)
+
 
 @pytest.fixture
 def session(engine, tables):
@@ -124,7 +127,6 @@ class TestStore:
         store = sqla_yaml_fixtures.Store()
         store.put('foo', Foo)
         assert store.get('foo.bar.__class__.__name__') == 'int'
-
 
 
 def test_insert_simple(session):
@@ -205,7 +207,6 @@ def test_init_param_ref(session):
     assert users[0].profile.name == 'Jeffrey'
 
 
-
 def test_2many(session):
     fixture = """
 - User:
@@ -258,3 +259,20 @@ def test_doc_sample(session):
     assert users[0].username == 'joey'
     assert users[0].profile.name == 'Jeffrey'
 
+
+def test_empty_entry(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      nickname: Joey
+
+- Profile:
+
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile.name == 'Joey'
