@@ -25,7 +25,7 @@ Example:
 
 .. code:: yaml
 
-    User:
+    - User:
       - __key__: joey
         username: joey
         email: joey@example.com
@@ -36,15 +36,17 @@ Example:
         username: deedee
         email: deedee@example.com
 
-    Profile:
+    - Profile:
       - user: dee
         name: Douglas
 
-    Group:
+    - Group:
       - name: Ramones
         members: [joey.profile, dee.profile]
 
--  The root of YAML contain ``mapper`` names i.e. ``User``
+-  The root of YAML contain ``mapper`` names e.g. ``User``, ``Profile`` etc
+-  The ``mapper`` names should be a ``list`` to enforce ordering e.g. ``- User``, ``- Profile``
+-  Order of ``mapper`` names should follow relationship (``__key__``) dependencies
 -  Every mapper should contain a *list* of instances
 -  Each instance is mapping of *attribute* -> *value*
 -  the attributes are taken from the mapper ``__init__()`` (usually an
@@ -58,7 +60,7 @@ Example:
    ``joey.profile``
 -  *to-many* relationships can be added as a list of references
 
-The mapper definition for this example is in the `test file`_.
+The mapper definition for this example is in the [test file](test_sqla_yaml_fixtures.py).
 
 Installation
 ------------
@@ -102,7 +104,7 @@ Where:
         session = Session(bind=connection)
 
         fixture = """
-        User:
+        - User:
           - username: deedee
             email: deedee@example.com
           - username: joey

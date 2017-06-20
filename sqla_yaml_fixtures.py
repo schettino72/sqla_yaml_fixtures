@@ -129,9 +129,16 @@ def load(ModelBase, session, fixture_text):
     # make sure backref attributes are created
     sqlalchemy.orm.configure_mappers()
 
+    # Data should be sequence of entry per mapper name
+    # to enforce that FKs (__key__ entries) are defined first
     data = yaml.load(fixture_text)
+    if not isinstance(data, list):
+        raise ValueError('top level YAML should be sequence (list)')
+
     store = Store()
-    for model_name, instances in data.items():
+    for model_entry in data:
+        # Model entry is dict with one item
+        model_name, instances = model_entry.popitem()
         if not isinstance(instances, list):
             msg = '`{}` should contain a list.'
             raise ValueError(msg.format(model_name))

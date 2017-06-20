@@ -129,7 +129,7 @@ class TestStore:
 
 def test_insert_simple(session):
     fixture = """
-User:
+- User:
   - username: deedee
     email: deedee@example.com
   - username: joey
@@ -144,11 +144,11 @@ User:
 
 def test_insert_relation(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
-Profile:
+- Profile:
   - user: joey
     name: Jeffrey
 """
@@ -160,7 +160,7 @@ Profile:
 
 def test_insert_nested(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -175,7 +175,7 @@ User:
 
 def test_init_param(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -190,12 +190,12 @@ User:
 
 def test_init_param_ref(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
 
-Profile:
+- Profile:
   - the_user: {ref: joey}
     name: Jeffrey
 """
@@ -208,14 +208,14 @@ Profile:
 
 def test_2many(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
     profile:
       name: Jeffrey
 
-Group:
+- Group:
   - name: Ramones
     members: [joey.profile]
 """
@@ -229,7 +229,7 @@ Group:
 def test_doc_sample(session):
     # test the example used in the docs
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -240,11 +240,11 @@ User:
     username: deedee
     email: deedee@example.com
 
-Profile:
+- Profile:
   - user: dee
     name: Douglas
 
-Group:
+- Group:
   - name: Ramones
     members: [joey.profile, dee.profile]
 """
