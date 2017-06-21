@@ -1,11 +1,15 @@
-__version__ = (0, 1, 2)
-
-import functools
-
 import yaml
 import sqlalchemy
 from sqlalchemy.orm.relationships import RelationshipProperty
 
+try:
+    # Python 3
+    from functools import lru_cache
+except ImportError:  # pragma: no cover
+    # For Python 2
+    from backports.functools_lru_cache import lru_cache
+
+__version__ = (0, 2, 0)
 
 
 class Store:
@@ -30,21 +34,21 @@ class Store:
         self._store[key] = value
 
 
-@functools.lru_cache()
+@lru_cache()
 def _get_rel_col_for(src_model, target_model_name):
     '''find the column in src_model that is a relationship to target_model
     @return column name
-'''
-    #FIXME deal with self-referential m2m
+    '''
+
+    # FIXME deal with self-referential m2m
     for name, col in src_model._sa_class_manager.items():
         try:
             target = col.property.mapper.class_
         except AttributeError:
             continue
-        if  target.__name__ == target_model_name:
+        if target.__name__ == target_model_name:
             return name
     raise Exception('Not found')
-
 
 
 def _create_obj(ModelBase, store, model_name, key, values):
@@ -63,7 +67,7 @@ def _create_obj(ModelBase, store, model_name, key, values):
     nested = []
 
     # references "2many" that are in a list
-    many = [] # each element is 2-tuple (field_name, [values])
+    many = []  # each element is 2-tuple (field_name, [values])
 
     for name, value in values.items():
         try:
@@ -90,7 +94,7 @@ def _create_obj(ModelBase, store, model_name, key, values):
             scalars[name] = store.get(value)
         elif isinstance(value, list):
             if not value:
-                continue # empty list
+                continue  # empty list
             tgt_model_name = store.get(value[0]).__class__.__name__
             rel_model = ModelBase._decl_class_registry[rel_name]
             col_name = _get_rel_col_for(rel_model, tgt_model_name)
@@ -123,9 +127,22 @@ def load(ModelBase, session, fixture_text):
     # make sure backref attributes are created
     sqlalchemy.orm.configure_mappers()
 
+    # Data should be sequence of entry per mapper name
+    # to enforce that FKs (__key__ entries) are defined first
     data = yaml.load(fixture_text)
+    if not isinstance(data, list):
+        raise ValueError('top level YAML should be sequence (list)')
+
     store = Store()
-    for model_name, instances in data.items():
+    for model_entry in data:
+        # Model entry must be dict with zero or one item
+        model_name, instances = model_entry.popitem()
+        if instances is None:
+            # Ignore empty entry
+            continue
+        if len(model_entry) > 0:
+            msg = '`{}` should contain one item.'
+            raise ValueError(msg.format(model_name))
         if not isinstance(instances, list):
             msg = '`{}` should contain a list.'
             raise ValueError(msg.format(model_name))
@@ -134,4 +151,3 @@ def load(ModelBase, session, fixture_text):
             obj = _create_obj(ModelBase, store, model_name, key, fields)
             session.add(obj)
     session.commit()
-

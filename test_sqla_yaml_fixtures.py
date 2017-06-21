@@ -13,6 +13,7 @@ import sqla_yaml_fixtures
 
 BaseModel = declarative_base()
 
+
 class User(BaseModel):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
@@ -30,7 +31,8 @@ class Profile(BaseModel):
         unique=True)
     user = relationship(
         'User', uselist=False,
-        backref=backref('profile', uselist=False, cascade='all, delete-orphan'),
+        backref=backref('profile', uselist=False,
+                        cascade='all, delete-orphan'),
     )
 
     def __init__(self, nickname=None, the_user=None, **kwargs):
@@ -67,7 +69,6 @@ class GroupMember(BaseModel):
     )
 
 
-
 #################################################
 
 # fixtures based on
@@ -76,11 +77,13 @@ class GroupMember(BaseModel):
 def engine():
     return create_engine('sqlite://')
 
+
 @pytest.fixture(scope='session')
 def tables(engine):
     BaseModel.metadata.create_all(engine)
     yield
     BaseModel.metadata.drop_all(engine)
+
 
 @pytest.fixture
 def session(engine, tables):
@@ -126,10 +129,9 @@ class TestStore:
         assert store.get('foo.bar.__class__.__name__') == 'int'
 
 
-
 def test_insert_simple(session):
     fixture = """
-User:
+- User:
   - username: deedee
     email: deedee@example.com
   - username: joey
@@ -144,11 +146,11 @@ User:
 
 def test_insert_relation(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
-Profile:
+- Profile:
   - user: joey
     name: Jeffrey
 """
@@ -160,7 +162,7 @@ Profile:
 
 def test_insert_nested(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -175,7 +177,7 @@ User:
 
 def test_init_param(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -190,12 +192,12 @@ User:
 
 def test_init_param_ref(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
 
-Profile:
+- Profile:
   - the_user: {ref: joey}
     name: Jeffrey
 """
@@ -205,17 +207,16 @@ Profile:
     assert users[0].profile.name == 'Jeffrey'
 
 
-
 def test_2many(session):
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
     profile:
       name: Jeffrey
 
-Group:
+- Group:
   - name: Ramones
     members: [joey.profile]
 """
@@ -229,7 +230,7 @@ Group:
 def test_doc_sample(session):
     # test the example used in the docs
     fixture = """
-User:
+- User:
   - __key__: joey
     username: joey
     email: joey@example.com
@@ -240,11 +241,11 @@ User:
     username: deedee
     email: deedee@example.com
 
-Profile:
+- Profile:
   - user: dee
     name: Douglas
 
-Group:
+- Group:
   - name: Ramones
     members: [joey.profile, dee.profile]
 """
@@ -258,3 +259,20 @@ Group:
     assert users[0].username == 'joey'
     assert users[0].profile.name == 'Jeffrey'
 
+
+def test_empty_entry(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      nickname: Joey
+
+- Profile:
+
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile.name == 'Joey'

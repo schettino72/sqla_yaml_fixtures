@@ -25,7 +25,7 @@ Example:
 
 .. code:: yaml
 
-    User:
+    - User:
       - __key__: joey
         username: joey
         email: joey@example.com
@@ -36,25 +36,26 @@ Example:
         username: deedee
         email: deedee@example.com
 
-    Profile:
+    - Profile:
       - user: dee
         name: Douglas
 
-    Group:
+    - Group:
       - name: Ramones
         members: [joey.profile, dee.profile]
 
--  The root of YAML contain ``mapper`` names i.e. ``User``
--  Every mapper should contain a *list* of instances
--  Each instance is mapping of *attribute* -> *value*
+-  The root of YAML contains a *sequence* of ``mapper names`` e.g. ``- User``, ``- Profile`` etc
+-  The order of these names should follow relationship dependencies
+-  Every name should contain a *sequence* of instances
+-  Each instance is a *mapping* of *attribute* -> *value*
 -  the attributes are taken from the mapper ``__init__()`` (usually an
    attributes maps to a column)
 -  The special field ``__key__`` can be used to identify this instnace
-   in a relationship reference .i.e. The ``Profile.user``
+   in a relationship reference e.g. The ``Profile.user``
 -  Note that any ``__key__`` MUST be globally **unique**
 -  In a *to-one* relationship the data can be directly nested in the
    parent data definition
--  References can access attributes using a *dot* notaion, i.e.
+-  References can access attributes using a *dot* notation, e.g.
    ``joey.profile``
 -  *to-many* relationships can be added as a list of references
 
@@ -102,7 +103,7 @@ Where:
         session = Session(bind=connection)
 
         fixture = """
-        User:
+        - User:
           - username: deedee
             email: deedee@example.com
           - username: joey
