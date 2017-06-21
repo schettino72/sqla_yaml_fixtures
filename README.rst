@@ -59,7 +59,7 @@ Example:
    ``joey.profile``
 -  *to-many* relationships can be added as a list of references
 
-The mapper definition for this example is in the [test file](test_sqla_yaml_fixtures.py).
+The mapper definition for this example is in the `test file`_.
 
 Installation
 ------------

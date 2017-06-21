@@ -1,15 +1,17 @@
-0.1.0 (2017-06-14)
-==================
+0.2.0 (to be released)
+======================
 
-- Initial release
+- Python 2 compat (issue #1)
+- Top-level YAML must be sequence (i.s.o. mapping) (issue #2)
+
 
 0.1.1 (2017-06-14)
 ==================
 
 - convert README to ReST
 
-0.2.0 (2017-06-??)
+
+0.1.0 (2017-06-14)
 ==================
 
-- Python 2 compat (issue #1)
-- Top-level YAML must be sequence (i.s.o. mapping) (issue #2)
+- Initial release
