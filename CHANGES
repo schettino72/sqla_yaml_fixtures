@@ -3,7 +3,7 @@
 
 - Python 2 compat (issue #1)
 - Top-level YAML must be sequence (i.s.o. mapping) (issue #2)
-- Improve error messages (issue #3)
+- Improve error messages (issue #4)
 
 
 0.1.1 (2017-06-14)
