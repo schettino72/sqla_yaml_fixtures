@@ -39,7 +39,6 @@ def _get_rel_col_for(src_model, target_model_name):
     '''find the column in src_model that is a relationship to target_model
     @return column name
     '''
-
     # FIXME deal with self-referential m2m
     for name, col in src_model._sa_class_manager.items():
         try:
@@ -48,7 +47,8 @@ def _get_rel_col_for(src_model, target_model_name):
             continue
         if target.__name__ == target_model_name:
             return name
-    raise Exception('Not found')
+    msg = 'Mapper `{}` has no field with relationship to type `{}`'
+    raise Exception(msg.format(src_model.__name__, target_model_name))
 
 
 def _create_obj(ModelBase, store, model_name, key, values):
@@ -71,39 +71,43 @@ def _create_obj(ModelBase, store, model_name, key, values):
 
     for name, value in values.items():
         try:
-            column = getattr(getattr(model, name), 'property')
-        except AttributeError:
-            # __init__ param that is not a column
+            try:
+                column = getattr(getattr(model, name), 'property')
+            except AttributeError:
+                # __init__ param that is not a column
+                if isinstance(value, dict):
+                    scalars[name] = store.get(value['ref'])
+                else:
+                    scalars[name] = value
+                continue
+
+            # simple value assignemnt
+            if not isinstance(column, RelationshipProperty):
+                scalars[name] = value
+                continue
+
+            # relationship
+            rel_name = column.mapper.class_.__name__
             if isinstance(value, dict):
-                scalars[name] = store.get(value['ref'])
+                nested.append([rel_name, column.back_populates, value])
+            # a reference (key) was passed, get obj from store
+            elif isinstance(value, str):
+                scalars[name] = store.get(value)
+            elif isinstance(value, list):
+                if not value:
+                    continue  # empty list
+                tgt_model_name = store.get(value[0]).__class__.__name__
+                rel_model = ModelBase._decl_class_registry[rel_name]
+                col_name = _get_rel_col_for(rel_model, tgt_model_name)
+                refs = [rel_model(**{col_name: store.get(v)})
+                        for v in value]
+                many.append((name, refs))
+            # nested field which object was just created
             else:
                 scalars[name] = value
-            continue
-
-        # simple value assignemnt
-        if not isinstance(column, RelationshipProperty):
-            scalars[name] = value
-            continue
-
-        # relationship
-        rel_name = column.mapper.class_.__name__
-        if isinstance(value, dict):
-            nested.append([rel_name, column.back_populates, value])
-        # a reference (key) was passed, get obj from store
-        elif isinstance(value, str):
-            scalars[name] = store.get(value)
-        elif isinstance(value, list):
-            if not value:
-                continue  # empty list
-            tgt_model_name = store.get(value[0]).__class__.__name__
-            rel_model = ModelBase._decl_class_registry[rel_name]
-            col_name = _get_rel_col_for(rel_model, tgt_model_name)
-            refs = [rel_model(**{col_name: store.get(v)})
-                    for v in value]
-            many.append((name, refs))
-        # nested field which object was just created
-        else:
-            scalars[name] = value
+        except Exception as orig_exp:
+            raise Exception('Error processing {}.{}={}\n{}'.format(
+                model_name, name, value, str(orig_exp)))
 
     obj = model(**scalars)
 
@@ -131,7 +135,7 @@ def load(ModelBase, session, fixture_text):
     # to enforce that FKs (__key__ entries) are defined first
     data = yaml.load(fixture_text)
     if not isinstance(data, list):
-        raise ValueError('top level YAML should be sequence (list)')
+        raise ValueError('Top level YAML should be sequence (list).')
 
     store = Store()
     for model_entry in data:
@@ -141,10 +145,11 @@ def load(ModelBase, session, fixture_text):
             # Ignore empty entry
             continue
         if len(model_entry) > 0:
-            msg = '`{}` should contain one item.'
+            msg = ('Sequence item must contain only one mapper,'
+                   ' found extra `{}`.')
             raise ValueError(msg.format(model_name))
         if not isinstance(instances, list):
-            msg = '`{}` should contain a list.'
+            msg = '`{}` must contain a sequence(list).'
             raise ValueError(msg.format(model_name))
         for fields in instances:
             key = fields.pop('__key__', None)

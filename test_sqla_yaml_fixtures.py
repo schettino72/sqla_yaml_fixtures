@@ -144,6 +144,19 @@ def test_insert_simple(session):
     assert users[1].username == 'joey'
 
 
+def test_insert_invalid(session):
+    fixture = """
+- User:
+  - username: deedee
+    email: deedee@example.com
+    color_no: blue
+"""
+    with pytest.raises(Exception) as exc_info:
+        sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    assert 'User' in str(exc_info)
+    assert 'color_no' in str(exc_info)
+
+
 def test_insert_relation(session):
     fixture = """
 - User:
@@ -227,6 +240,101 @@ def test_2many(session):
     assert groups[0].members[0].profile.groups[0].group.name == 'Ramones'
 
 
+def test_2many_invalid_ref(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+
+- Group:
+  - name: Ramones
+    members: [joey] # should be joey.profile
+"""
+    with pytest.raises(Exception) as exc_info:
+        sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    assert 'Group' in str(exc_info)
+    assert 'members' in str(exc_info)
+    assert 'joey' in str(exc_info)
+
+
+def test_2many_empty_is_ok(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+
+- Group:
+  - name: Ramones
+    members: []
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    groups = session.query(Group).all()
+    assert len(groups) == 1
+    assert len(groups[0].members) == 0
+
+
+def test_empty_entry_is_ok(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      nickname: Joey
+
+- Profile:
+
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile.name == 'Joey'
+
+
+def test_yaml_root_sequence(session):
+    fixture = """
+User:
+  - username: deedee
+    email: deedee@example.com
+"""
+    with pytest.raises(Exception) as exc_info:
+        sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    assert 'Top level YAML' in str(exc_info)
+    assert 'sequence' in str(exc_info)
+
+
+def test_yaml_root_item_single_element(session):
+    fixture = """
+- User:
+  - username: deedee
+    email: deedee@example.com
+  Group:
+  - name: Ramones
+"""
+    with pytest.raises(Exception) as exc_info:
+        sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    assert 'Sequence item must contain only one mapper' in str(exc_info)
+    assert 'Group' in str(exc_info)
+
+
+def test_mapper_must_contain_list(session):
+    fixture = """
+- User:
+    username: deedee
+    email: deedee@example.com
+"""
+    with pytest.raises(Exception) as exc_info:
+        sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    assert 'must contain a sequence(list)' in str(exc_info)
+    assert 'User' in str(exc_info)
+
+
 def test_doc_sample(session):
     # test the example used in the docs
     fixture = """
@@ -260,19 +368,3 @@ def test_doc_sample(session):
     assert users[0].profile.name == 'Jeffrey'
 
 
-def test_empty_entry(session):
-    fixture = """
-- User:
-  - __key__: joey
-    username: joey
-    email: joey@example.com
-    profile:
-      nickname: Joey
-
-- Profile:
-
-"""
-    sqla_yaml_fixtures.load(BaseModel, session, fixture)
-    users = session.query(User).all()
-    assert len(users) == 1
-    assert users[0].profile.name == 'Joey'
