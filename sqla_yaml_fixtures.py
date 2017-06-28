@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 2, 0)
+__version__ = (0, 3, 0)
 
 
 class Store:
@@ -156,3 +156,4 @@ def load(ModelBase, session, fixture_text):
             obj = _create_obj(ModelBase, store, model_name, key, fields)
             session.add(obj)
     session.commit()
+    return store

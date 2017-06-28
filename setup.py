@@ -10,7 +10,7 @@ try:
     if pip_version < (9, 0, 1) :
         pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
         'pip {} detected.'.format(pip.__version__)
-        
+
 except Exception:
     pip_message = 'This may be due to an out of date pip. Make sure you have pip >= 9.0.1.'
 
@@ -19,21 +19,21 @@ if pip_message:
     # Some error from pip version check
     error = """
     Python {py} detected.
-    Exiting setup: 
+    Exiting setup:
     {pip}
     """.format(py=sys.version_info, pip=pip_message )
 
     print(error, file=sys.stderr)
     sys.exit(1)
 
-    
+
 def readme():
     with open('README.rst') as fp:
         return fp.read()
 
 setup(name='sqla_yaml_fixtures',
       description='Load YAML data fixtures for SQLAlchemy',
-      version='0.2.0',
+      version='0.3.0',
       license='MIT',
       author='Eduardo Naufel Schettino',
       author_email='schettino72@gmail.com',

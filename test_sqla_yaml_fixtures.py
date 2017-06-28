@@ -144,6 +144,21 @@ def test_insert_simple(session):
     assert users[1].username == 'joey'
 
 
+def test_store_returned(session):
+    fixture = """
+- User:
+  - __key__: dee
+    username: deedee
+    email: deedee@example.com
+"""
+    store = sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].username == 'deedee'
+    assert users[0].id is not None
+    assert users[0].id == store.get('dee').id
+
+
 def test_insert_invalid(session):
     fixture = """
 - User:
