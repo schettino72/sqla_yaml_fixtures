@@ -336,6 +336,7 @@ def test_yaml_root_item_single_element(session):
         sqla_yaml_fixtures.load(BaseModel, session, fixture)
     assert 'Sequence item must contain only one mapper' in str(exc_info)
     assert 'Group' in str(exc_info)
+    assert 'User' in str(exc_info)
 
 
 def test_mapper_must_contain_list(session):

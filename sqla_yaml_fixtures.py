@@ -139,15 +139,15 @@ def load(ModelBase, session, fixture_text):
 
     store = Store()
     for model_entry in data:
-        # Model entry must be dict with zero or one item
+        if len(model_entry) != 1:
+            msg = ('Sequence item must contain only one mapper,'
+                   ' found: {}.')
+            raise ValueError(msg.format(', '.join(model_entry.keys())))
+
         model_name, instances = model_entry.popitem()
         if instances is None:
             # Ignore empty entry
             continue
-        if len(model_entry) > 0:
-            msg = ('Sequence item must contain only one mapper,'
-                   ' found extra `{}`.')
-            raise ValueError(msg.format(model_name))
         if not isinstance(instances, list):
             msg = '`{}` must contain a sequence(list).'
             raise ValueError(msg.format(model_name))
