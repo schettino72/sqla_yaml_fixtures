@@ -43,6 +43,43 @@ class Profile(BaseModel):
         super(Profile, self).__init__(**kwargs)
 
 
+class Profile2(BaseModel):
+    __tablename__ = 'profile2'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+    user_id = Column(
+        ForeignKey('user.id', deferrable=True, initially='DEFERRED'),
+        nullable=False,
+        unique=True)
+    user = relationship(
+        'User', uselist=False,
+        backref=backref('profile2', uselist=False,
+                        cascade='all, delete-orphan'),
+    )
+
+    def __init__(self, user=None, **kwargs):
+        assert user is not None
+        self.user = user
+        super(Profile2, self).__init__(**kwargs)
+
+
+class Profile3(BaseModel):
+    __tablename__ = 'profile3'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+    user_id = Column(
+        ForeignKey('user.id', deferrable=True, initially='DEFERRED'),
+        nullable=False,
+        unique=True)
+    # Note relationship has no back_ref
+    user = relationship('User', uselist=False)
+
+    def __init__(self, user=None, **kwargs):
+        assert user is not None
+        self.user = user
+        super(Profile3, self).__init__(**kwargs)
+
+
 class Group(BaseModel):
     __tablename__ = 'group'
     id = Column(Integer, primary_key=True)
@@ -202,6 +239,34 @@ def test_insert_nested(session):
     assert len(users) == 1
     assert users[0].profile.name == 'Jeffrey'
 
+
+def test_insert_nested_back_populate(session):
+    fixture = """
+- User:
+  - username: joey
+    email: joey@example.com
+    profile2:
+      name: Jeffrey
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).all()
+    assert len(users) == 1
+    assert users[0].profile2.name == 'Jeffrey'
+
+
+def test_insert_nested_NO_back_populate(session):
+    fixture = """
+- Profile3:
+  - name: Jeffrey
+    user:
+      username: joey
+      email: joey@example.com
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    profiles = session.query(Profile3).all()
+    assert len(profiles) == 1
+    assert profiles[0].name == 'Jeffrey'
+    assert profiles[0].user.username == 'joey'
 
 def test_init_param(session):
     fixture = """

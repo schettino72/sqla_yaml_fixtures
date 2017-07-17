@@ -2,6 +2,7 @@ unreleased
 ======================
 
 - Fix reporting error when model entry cotains more then one mapper
+- Accept nested objects without a `backref`
 
 0.3.0 (2017-06-28)
 ======================

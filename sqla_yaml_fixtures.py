@@ -89,7 +89,17 @@ def _create_obj(ModelBase, store, model_name, key, values):
             # relationship
             rel_name = column.mapper.class_.__name__
             if isinstance(value, dict):
-                nested.append([rel_name, column.back_populates, value])
+                # If column includes a back_populates, we assume
+                # the constructor of the nested object takes a reference
+                # to its parent.
+                if column.back_populates:
+                    nested.append([rel_name, column.back_populates,
+                                   value])
+                # If there is no back_populates create the nested object
+                # first
+                else:
+                    scalars[name] = _create_obj(
+                        ModelBase, store, rel_name, None, value)
             # a reference (key) was passed, get obj from store
             elif isinstance(value, str):
                 scalars[name] = store.get(value)
