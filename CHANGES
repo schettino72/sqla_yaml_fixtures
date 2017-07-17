@@ -1,4 +1,4 @@
-unreleased
+0.4.0 (2017-07-17)
 ======================
 
 - Fix reporting error when model entry cotains more then one mapper

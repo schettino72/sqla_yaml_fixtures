@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 3, 0)
+__version__ = (0, 4, 0)
 
 
 class Store:
