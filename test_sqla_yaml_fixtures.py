@@ -105,6 +105,17 @@ class GroupMember(BaseModel):
         backref=backref('groups', lazy='dynamic'),
     )
 
+class Genre(BaseModel):
+    __tablename__ = 'genre'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    group_id = Column(
+        ForeignKey('group.id', deferrable=True, initially='DEFERRED'),
+        nullable=False, index=True)
+    group = relationship(
+        'Group',
+        backref=backref('genres', cascade='all, delete-orphan'),
+    )
 
 #################################################
 
@@ -267,6 +278,24 @@ def test_insert_nested_NO_back_populate(session):
     assert len(profiles) == 1
     assert profiles[0].name == 'Jeffrey'
     assert profiles[0].user.username == 'joey'
+
+
+def test_insert_nested_list(session):
+    fixture = """
+- Group:
+  - name: Ramones
+    genres:
+      - name: rock
+      - name: punk
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    genres = session.query(Genre).all()
+    assert len(genres) == 2
+    assert genres[0].name == 'rock'
+    assert genres[0].group.name == 'Ramones'
+    assert genres[1].name == 'punk'
+    assert genres[1].group.name == 'Ramones'
+
 
 def test_init_param(session):
     fixture = """

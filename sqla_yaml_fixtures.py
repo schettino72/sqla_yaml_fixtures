@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 4, 0)
+__version__ = (0, 5, 0)
 
 
 class Store:
@@ -106,12 +106,21 @@ def _create_obj(ModelBase, store, model_name, key, values):
             elif isinstance(value, list):
                 if not value:
                     continue  # empty list
-                tgt_model_name = store.get(value[0]).__class__.__name__
-                rel_model = ModelBase._decl_class_registry[rel_name]
-                col_name = _get_rel_col_for(rel_model, tgt_model_name)
-                refs = [rel_model(**{col_name: store.get(v)})
-                        for v in value]
-                many.append((name, refs))
+                # if list element are string they are references
+                if isinstance(value[0], str):
+                    tgt_model_name = store.get(value[0]).__class__.__name__
+                    rel_model = ModelBase._decl_class_registry[rel_name]
+                    col_name = _get_rel_col_for(rel_model, tgt_model_name)
+                    refs = [rel_model(**{col_name: store.get(v)})
+                            for v in value]
+                    many.append((name, refs))
+
+                # else they are a list of nested elements
+                else:
+                    nested.extend(
+                        [rel_name, column.back_populates, v]
+                        for v in value)
+
             # nested field which object was just created
             else:
                 scalars[name] = value
