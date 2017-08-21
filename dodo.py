@@ -1,5 +1,5 @@
 from doitpy.pyflakes import Pyflakes
-from doitpy.coverage import Coverage, PythonModule
+from doitpy.coverage import Coverage, PythonPackage
 
 
 DOIT_CONFIG = {
@@ -10,13 +10,13 @@ DOIT_CONFIG = {
 
 def task_pyflakes():
     flaker = Pyflakes()
-    yield flaker.tasks('*.py')
+    yield flaker.tasks('**/*.py')
 
 
 def task_coverage():
     """show coverage for all modules including tests"""
     cov = Coverage(
-        [PythonModule('sqla_yaml_fixtures.py', 'test_sqla_yaml_fixtures.py')],
+        [PythonPackage('sqla_yaml_fixtures', 'tests')],
         config={'branch':True,},
     )
     yield cov.all() # create task `coverage`

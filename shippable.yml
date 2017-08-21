@@ -17,4 +17,4 @@ build:
     - mkdir -p shippable/testresults
 
     - doit # pyflakes
-    - pytest --junitxml=shippable/testresults/tests.xml  --cov-branch --cov=sqla_yaml_fixtures --cov=test_sqla_yaml_fixtures  --cov-report=xml:shippable/codecoverage/coverage.xml
+    - pytest --junitxml=shippable/testresults/tests.xml  --cov-branch --cov=sqla_yaml_fixtures --cov=tests  --cov-report=xml:shippable/codecoverage/coverage.xml
