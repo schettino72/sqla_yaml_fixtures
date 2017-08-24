@@ -50,6 +50,9 @@ def make_parser():
         help='load fixture files as jinja2 templates')
 
     # TODO logging
+    # import logging
+    # logging.basicConfig()
+    # logging.getLogger('sqlalchemy.engine').setLevel(logging.WARN)
     return parser
 
 
@@ -57,8 +60,9 @@ def make_parser():
 # * pass arguments to `main()`
 
 
-def main():
-    args = make_parser().parse_args()
+def main(argv=None):
+    args = make_parser().parse_args(argv)
+
     if not args.yes:
         print('DB: \x1b[0;34;40m{}\x1b[0m'.format(args.db_url))
         if (args.reset_db):
@@ -85,15 +89,18 @@ def main():
     connection = engine.connect()
     session = Session(bind=connection)
     try:
+        fixture_yaml = []
         for fixture_name in args.files:
             print('Loading file: {} ...'.format(fixture_name))
             with open(fixture_name) as fp:
                 if args.jinja2:
                     from jinja2 import Template
-                    fixture_yaml = Template(fp.read()).render()
+                    file_yaml = Template(fp.read()).render()
                 else:
-                    fixture_yaml = fp.read()
-                sqla_yaml_fixtures.load(BaseClass, session, fixture_yaml)
+                    file_yaml = fp.read()
+            fixture_yaml.append(file_yaml)
+        data_yaml = '\n'.join(fixture_yaml)
+        sqla_yaml_fixtures.load(BaseClass, session, data_yaml)
         session.commit()
     except:
         session.close()
