@@ -1,0 +1,18 @@
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    profile:
+      name: Jeffrey
+
+  - __key__: dee
+    username: deedee
+    email: deedee@example.com
+
+- Profile:
+  - user: dee
+    name: Douglas
+
+- Group:
+  - name: Ramones
+    members: [joey.profile, dee.profile]
