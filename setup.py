@@ -33,7 +33,7 @@ def readme():
 
 setup(name='sqla_yaml_fixtures',
       description='Load YAML data fixtures for SQLAlchemy',
-      version='0.5.0',
+      version='0.6.0',
       license='MIT',
       author='Eduardo Naufel Schettino',
       author_email='schettino72@gmail.com',
@@ -51,7 +51,7 @@ setup(name='sqla_yaml_fixtures',
         'Programming Language :: Python :: 3.6',
         'Intended Audience :: Developers',
         ],
-      py_modules=['sqla_yaml_fixtures'],
+      packages=['sqla_yaml_fixtures'],
       install_requires=[
           'SQLAlchemy',
           'PyYAML'
