@@ -19,10 +19,9 @@ def test_sample():
           '''python -m sqla_yaml_fixtures'''\
           '''       --db-url "{url}"'''\
           '''       --db-base "{base}"'''\
+          '''       --yes --reset-db'''\
           '''       {files}'''.format(**params)
 
-    if os.path.exists(db_file):
-        os.unlink(db_file)
     subprocess.check_call(cmd, shell=True)
 
 
