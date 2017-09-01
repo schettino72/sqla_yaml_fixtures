@@ -444,3 +444,32 @@ def test_mapper_must_contain_list(session):
     assert 'must contain a sequence(list)' in str(exc_info)
     assert 'User' in str(exc_info)
 
+
+### test custom loader
+
+class Person(BaseModel):
+    __tablename__ = 'person'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(150), nullable=False, unique=True)
+    email = Column(String(254), unique=True)
+
+    @classmethod
+    def create(cls, session, data):
+        name = data['username']
+        email = '{}@ramones.org'.format(name)
+        user = cls(username=name, email=email)
+        return user
+
+def test_custom_loader(session):
+    fixture = """
+- 'Person:create':
+  - username: joey
+  - username: deedee
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(Person).order_by(Person.username).all()
+    assert len(users) == 2
+    assert users[0].username == 'deedee'
+    assert users[0].email == 'deedee@ramones.org'
+    assert users[1].username == 'joey'
+    assert users[1].email == 'joey@ramones.org'

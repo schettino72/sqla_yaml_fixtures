@@ -1,3 +1,9 @@
+0.7.0 (2017-09-01)
+======================
+
+- support to load custom fixtures with a custom model method
+- use method `from_fixtures` if it exists to load model
+
 0.6.0 (2017-08-24)
 ======================
 

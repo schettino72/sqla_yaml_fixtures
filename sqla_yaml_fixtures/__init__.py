@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 6, 0)
+__version__ = (0, 7, 0)
 
 
 class Store:
@@ -51,9 +51,16 @@ def _get_rel_col_for(src_model, target_model_name):
     raise Exception(msg.format(src_model.__name__, target_model_name))
 
 
-def _create_obj(ModelBase, store, model_name, key, values):
+def _create_obj(ModelBase, session, store,
+                model_name, creator, key, values):
     '''create obj from values
-    @var values (dict): column:value
+
+    :var store (Store):
+    :var model_name (str): name of Model/Mapper
+    :var creator (str): classmethod name used to create obj.
+                        Takes 2 parameters (session, values)
+    :var key (str): key for obj in Store
+    :var values (dict): column:value
     '''
     # get reference to SqlAlchemy Mapper
     model = ModelBase._decl_class_registry[model_name]
@@ -99,10 +106,13 @@ def _create_obj(ModelBase, store, model_name, key, values):
                 # first
                 else:
                     scalars[name] = _create_obj(
-                        ModelBase, store, rel_name, None, value)
+                        ModelBase, session, store,
+                        rel_name, None, None, value)
+
             # a reference (key) was passed, get obj from store
             elif isinstance(value, str):
                 scalars[name] = store.get(value)
+
             elif isinstance(value, list):
                 if not value:
                     continue  # empty list
@@ -124,16 +134,24 @@ def _create_obj(ModelBase, store, model_name, key, values):
             # nested field which object was just created
             else:
                 scalars[name] = value
+
         except Exception as orig_exp:
             raise Exception('Error processing {}.{}={}\n{}'.format(
                 model_name, name, value, str(orig_exp)))
 
-    obj = model(**scalars)
+    if creator is None:
+        creator = 'from_fixture' if hasattr(model, 'from_fixture') else None
+
+    if creator is None:
+        obj = model(**scalars)
+    else:
+        obj = getattr(model, creator)(session, scalars)
 
     # add a nested objects with reference to parent
     for rel_name, back_populates, value in nested:
         value[back_populates] = obj
-        _create_obj(ModelBase, store, rel_name, None, value)
+        _create_obj(ModelBase, session, store,
+                    rel_name, None, None, value)
 
     # save obj in store
     if key:
@@ -164,6 +182,12 @@ def load(ModelBase, session, fixture_text):
             raise ValueError(msg.format(', '.join(model_entry.keys())))
 
         model_name, instances = model_entry.popitem()
+        # model_name can be a simple model name or <Name>:<creator>
+        if ':' in model_name:
+            model_name, creator = model_name.split(':')
+        else:
+            creator = None
+
         if instances is None:
             # Ignore empty entry
             continue
@@ -172,7 +196,8 @@ def load(ModelBase, session, fixture_text):
             raise ValueError(msg.format(model_name))
         for fields in instances:
             key = fields.pop('__key__', None)
-            obj = _create_obj(ModelBase, store, model_name, key, fields)
+            obj = _create_obj(ModelBase, session, store,
+                              model_name, creator, key, fields)
             session.add(obj)
     session.commit()
     return store
