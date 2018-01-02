@@ -19,6 +19,15 @@ class User(BaseModel):
     id = Column(Integer, primary_key=True)
     username = Column(String(150), nullable=False, unique=True)
     email = Column(String(254), unique=True)
+    roles = relationship('Role')
+
+
+class Role(BaseModel):
+    __tablename__ = 'role'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+    user_id = Column(ForeignKey('user.id'), nullable=False)
+    user = relationship('User')
 
 
 class Profile(BaseModel):
@@ -347,6 +356,23 @@ def test_2many(session):
     assert len(groups) == 1
     assert groups[0].members[0].profile.name == 'Jeffrey'
     assert groups[0].members[0].profile.groups[0].group.name == 'Ramones'
+
+
+def test_2many_no_backref(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    roles:
+      - name: owner
+      - name: editor
+      - name: viewer
+"""
+    data = sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    roles = session.query(Role).all()
+    assert len(roles) == 3
+    assert roles[0].user_id == data.get('joey').id
 
 
 def test_2many_invalid_ref(session):
