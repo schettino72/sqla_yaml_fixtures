@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 7, 0)
+__version__ = (0, 8, 0)
 
 
 class Store:
@@ -127,9 +127,17 @@ def _create_obj(ModelBase, session, store,
 
                 # else they are a list of nested elements
                 else:
-                    nested.extend(
-                        [rel_name, column.back_populates, v]
-                        for v in value)
+                    if column.back_populates:
+                        nested.extend(
+                            [rel_name, column.back_populates, v]
+                            for v in value)
+                    # If there is no back_populates create the nested objects
+                    # first
+                    else:
+                        scalars[name] = [_create_obj(
+                            ModelBase, session, store,
+                            rel_name, None, None, v)
+                            for v in value]
 
             # nested field which object was just created
             else:
