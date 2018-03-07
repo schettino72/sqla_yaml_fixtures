@@ -128,4 +128,4 @@ Note: the `load()` function performs a `session.commit()`.
      print('Created object id: {}'.format(my_obj.id))
 
 
-.. _test file: https://github.com/schettino72/sqla_yaml_fixtures/blob/master/test_sqla_yaml_fixtures.py
+.. _test file: https://github.com/schettino72/sqla_yaml_fixtures/blob/master/tests/test_sqla_yaml_fixtures.py
