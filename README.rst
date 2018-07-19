@@ -66,6 +66,7 @@ Installation
 
 ``pip install sqla-yaml-fixtures``
 
+
 API
 ---
 
@@ -128,4 +129,40 @@ Note: the `load()` function performs a `session.commit()`.
      print('Created object id: {}'.format(my_obj.id))
 
 
+
+Command Line
+------------
+
+For basic usage there is also command line. Example::
+
+  $ python -m sqla_yaml_fixtures --db-url sqlite:///dev.db --db-base mypkg.models:Base --reset-db --alembic-stamp fixture.yaml
+
+
+All available options::
+
+  $ python -m sqla_yaml_fixtures --help
+  usage: sqla_yaml_fixtures [-h] --db-base DB_BASE --db-url DB_URL [--yes]
+                            [--reset-db] [--alembic-stamp] [--jinja2]
+                            FILE [FILE ...]
+
+  load fixtures from yaml file into DB
+
+  positional arguments:
+    FILE               YAML file with DB fixtures
+
+  optional arguments:
+    -h, --help         show this help message and exit
+    --db-base DB_BASE  SQLAlchemy Base class with schema metadata in the format
+                       my_package.my_module:MyClass
+    --db-url DB_URL    Database URL in the format
+                       dialect+driver://username:password@host:port/database
+    --yes              Do NOT ask for confirmation before applying fixtures
+    --reset-db         Drop DB schema and data and re-create schema before
+                       loading fixtures
+    --alembic-stamp    Perform `alembic stamp head`
+    --jinja2           load fixture files as jinja2 templates
+
+
+
 .. _test file: https://github.com/schettino72/sqla_yaml_fixtures/blob/master/tests/test_sqla_yaml_fixtures.py
+
