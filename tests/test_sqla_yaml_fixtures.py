@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship, backref
@@ -13,6 +13,25 @@ import sqla_yaml_fixtures
 
 BaseModel = declarative_base()
 
+user_friends = Table(
+    'user_friends',
+    BaseModel.metadata,
+    Column(
+        'user_id',
+        Integer,
+        ForeignKey('user.id'),
+        nullable=False,
+        primary_key=True,
+    ),
+    Column(
+        'friend_id',
+        Integer,
+        ForeignKey('user.id'),
+        nullable=False,
+        primary_key=True,
+    )
+)
+
 
 class User(BaseModel):
     __tablename__ = 'user'
@@ -20,6 +39,13 @@ class User(BaseModel):
     username = Column(String(150), nullable=False, unique=True)
     email = Column(String(254), unique=True)
     roles = relationship('Role')
+    friends = relationship(
+        'User',
+        secondary=user_friends,
+        primaryjoin=id==user_friends.c.user_id,
+        secondaryjoin=id==user_friends.c.friend_id,
+        order_by='User.username',
+    )
 
 
 class Role(BaseModel):
@@ -113,6 +139,7 @@ class GroupMember(BaseModel):
         'Profile',
         backref=backref('groups', lazy='dynamic'),
     )
+
 
 class Genre(BaseModel):
     __tablename__ = 'genre'
@@ -499,3 +526,29 @@ def test_custom_loader(session):
     assert users[0].email == 'deedee@ramones.org'
     assert users[1].username == 'joey'
     assert users[1].email == 'joey@ramones.org'
+
+
+def test_many_2_many(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+  - __key__: bobby
+    username: bobby
+    email: bobby@example.com
+  - __key__: johnny
+    username: johnny
+    email: johnny@example.com
+    friends:
+      - joey
+      - bobby
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).order_by(User.username).all()
+    assert users[0].friends == []
+    assert users[1].friends == []
+    assert users[2].username == 'johnny'
+    assert len(users[2].friends) == 2
+    assert users[2].friends[0].id == users[0].id
+    assert users[2].friends[1].id == users[1].id
