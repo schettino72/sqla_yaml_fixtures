@@ -32,6 +32,31 @@ user_friends = Table(
     )
 )
 
+user_instruments = Table(
+    'user_instruments',
+    BaseModel.metadata,
+    Column(
+        'user_id',
+        Integer,
+        ForeignKey('user.id'),
+        nullable=False,
+        primary_key=True,
+    ),
+    Column(
+        'instrument_id',
+        Integer,
+        ForeignKey('instrument.id'),
+        nullable=False,
+        primary_key=True,
+    )
+)
+
+
+class Instrument(BaseModel):
+    __tablename__ = 'instrument'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), unique=True)
+
 
 class User(BaseModel):
     __tablename__ = 'user'
@@ -45,6 +70,11 @@ class User(BaseModel):
         primaryjoin=id==user_friends.c.user_id,
         secondaryjoin=id==user_friends.c.friend_id,
         order_by='User.username',
+    )
+    instruments = relationship(
+        'Instrument',
+        secondary=user_instruments,
+        order_by='Instrument.name',
     )
 
 
@@ -385,6 +415,53 @@ def test_2many(session):
     assert groups[0].members[0].profile.groups[0].group.name == 'Ramones'
 
 
+def test_2many_secondary(session):
+    fixture = """
+- Instrument:
+  - __key__: drums
+    name: drums
+  - __key__: guitar
+    name: guitar
+
+- User:
+  - __key__: joey
+    username: joey
+    email: joey@example.com
+    instruments:
+      - drums
+      - guitar
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).order_by(User.username).all()
+    assert users[0].username == 'joey'
+    assert users[0].instruments[0].name == 'drums'
+    assert users[0].instruments[1].name == 'guitar'
+
+
+def test_self_referencing_2many_secondary(session):
+    fixture = """
+- User:
+  - __key__: joey
+    username: joey
+  - __key__: johnny
+    username: johnny
+  - __key__: tommy
+    username: tommy
+    email: tommy@example.com
+    friends:
+      - joey
+      - johnny
+"""
+    sqla_yaml_fixtures.load(BaseModel, session, fixture)
+    users = session.query(User).order_by(User.username).all()
+    assert len(users[0].friends) == 0
+    assert len(users[1].friends) == 0
+    assert len(users[2].friends) == 2
+    assert users[2].username == 'tommy'
+    assert users[2].friends[0].username == 'joey'
+    assert users[2].friends[1].username == 'johnny'
+
+
 def test_2many_no_backref(session):
     fixture = """
 - User:
@@ -526,29 +603,3 @@ def test_custom_loader(session):
     assert users[0].email == 'deedee@ramones.org'
     assert users[1].username == 'joey'
     assert users[1].email == 'joey@ramones.org'
-
-
-def test_many_2_many(session):
-    fixture = """
-- User:
-  - __key__: joey
-    username: joey
-    email: joey@example.com
-  - __key__: bobby
-    username: bobby
-    email: bobby@example.com
-  - __key__: johnny
-    username: johnny
-    email: johnny@example.com
-    friends:
-      - joey
-      - bobby
-"""
-    sqla_yaml_fixtures.load(BaseModel, session, fixture)
-    users = session.query(User).order_by(User.username).all()
-    assert users[0].friends == []
-    assert users[1].friends == []
-    assert users[2].username == 'johnny'
-    assert len(users[2].friends) == 2
-    assert users[2].friends[0].id == users[0].id
-    assert users[2].friends[1].id == users[1].id
