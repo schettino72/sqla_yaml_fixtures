@@ -5,6 +5,7 @@ dist
 
 # py.test
 .cache
+tests/sample.db
 
 # coverage
 .coverage
