@@ -71,7 +71,7 @@ API
 ---
 
 This module expose a single function
-``load(ModelBase, session, fixture_text)``
+``load(ModelBase, session, fixture_text, loader=None)``
 
 Where:
 
@@ -128,6 +128,12 @@ Note: the `load()` function performs a `session.commit()`.
      my_obj = store.get('dee')
      print('Created object id: {}'.format(my_obj.id))
 
+
+.. warning::
+
+   By default YAML is loaded using `yaml.FullLoader`, this is insecure when
+   loading unstrusted input. It is possible to overwrite the loaded by setting
+   `loader` param in the `load()` function.
 
 
 Command Line

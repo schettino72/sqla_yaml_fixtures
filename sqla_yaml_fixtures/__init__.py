@@ -9,7 +9,7 @@ except ImportError:  # pragma: no cover
     # For Python 2
     from backports.functools_lru_cache import lru_cache
 
-__version__ = (0, 8, 0)
+__version__ = (1, 0, 0)
 
 
 class Store:
@@ -177,13 +177,15 @@ def _create_obj(ModelBase, session, store,
     return obj
 
 
-def load(ModelBase, session, fixture_text):
+def load(ModelBase, session, fixture_text, loader=None):
     # make sure backref attributes are created
     sqlalchemy.orm.configure_mappers()
 
     # Data should be sequence of entry per mapper name
     # to enforce that FKs (__key__ entries) are defined first
-    data = yaml.load(fixture_text)
+    if loader is None:
+        loader = yaml.FullLoader
+    data = yaml.load(fixture_text, Loader=loader)
     if not isinstance(data, list):
         raise ValueError('Top level YAML should be sequence (list).')
 
