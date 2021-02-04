@@ -1,13 +1,9 @@
+from functools import lru_cache
+
 import yaml
 import sqlalchemy
 from sqlalchemy.orm.relationships import RelationshipProperty
 
-try:
-    # Python 3
-    from functools import lru_cache
-except ImportError:  # pragma: no cover
-    # For Python 2
-    from backports.functools_lru_cache import lru_cache
 
 __version__ = (1, 0, 0)
 

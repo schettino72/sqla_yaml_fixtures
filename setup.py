@@ -43,8 +43,6 @@ setup(name='sqla_yaml_fixtures',
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -56,8 +54,5 @@ setup(name='sqla_yaml_fixtures',
           'SQLAlchemy',
           'PyYAML'
       ],
-      extras_require={
-          ':python_version=="2.7"': ['backports.functools_lru_cache'],
-      },
       long_description=readme(),
       )
