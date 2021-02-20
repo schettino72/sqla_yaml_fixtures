@@ -59,7 +59,10 @@ def _create_obj(ModelBase, session, store,
     :var values (dict): column:value
     '''
     # get reference to SqlAlchemy Mapper
-    model = ModelBase._decl_class_registry[model_name]
+    model = (
+        getattr(ModelBase, "_decl_class_registry")
+        or ModelBase.registry._class_registry
+    )[model_name]
 
     # scalars will be passed to mapper __init__
     scalars = {}
@@ -118,7 +121,10 @@ def _create_obj(ModelBase, session, store,
                     if secondary is None:
                         # assume association object and find other reference
                         tgt_model_name = store.get(value[0]).__class__.__name__
-                        rel_model = ModelBase._decl_class_registry[rel_name]
+                        rel_model = (
+                            getattr(ModelBase, "_decl_class_registry")
+                            or ModelBase.registry._class_registry
+                        )[rel_name]
                         col_name = _get_rel_col_for(rel_model, tgt_model_name)
                         refs = [rel_model(**{col_name: store.get(v)})
                                 for v in value]
