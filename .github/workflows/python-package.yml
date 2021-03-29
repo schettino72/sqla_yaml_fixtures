@@ -27,13 +27,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install .
-
-        # lazy way to test different SQLA versions
-        - if: ${{ matrix.python-version == '3.8' }}
-          run: python -m pip install "SQLAlchemy<1.4"
-
         pip install -r requirements-dev.txt
         pip install pytest-cov
+
+    # lazy way to test different SQLA versions
+    - if: ${{ matrix.python-version == '3.8' }}
+      run: python -m pip install "SQLAlchemy<1.4"
+
     - name: Lint with pyflakes
       run: |
         doit
