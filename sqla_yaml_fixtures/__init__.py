@@ -20,11 +20,11 @@ def from_registry(Base, model_name):
 
 
 class Store:
-    '''Simple key-value store
+    """Simple key-value store
 
     Key might be a dot-separated where each name after a dot
     represents and attribute of the value-object.
-    '''
+    """
 
     def __init__(self):
         self._store = {}
@@ -43,9 +43,9 @@ class Store:
 
 @lru_cache()
 def _get_rel_col_for(src_model, target_model_name):
-    '''find the column in src_model that is a relationship to target_model
+    """find the column in src_model that is a relationship to target_model
     @return column name
-    '''
+    """
     # FIXME deal with self-referential m2m
     for name, col in src_model._sa_class_manager.items():
         try:
@@ -60,7 +60,7 @@ def _get_rel_col_for(src_model, target_model_name):
 
 def _create_obj(ModelBase, session, store,
                 model_name, creator, key, values):
-    '''create obj from values
+    """create obj from values
 
     :var store (Store):
     :var model_name (str): name of Model/Mapper
@@ -68,7 +68,7 @@ def _create_obj(ModelBase, session, store,
                         Takes 2 parameters (session, values)
     :var key (str): key for obj in Store
     :var values (dict): column:value
-    '''
+    """
     # get reference to SqlAlchemy Mapper
     model = from_registry(ModelBase, model_name)
 
@@ -220,6 +220,6 @@ def load(ModelBase, session, fixture_text, loader=None):
             key = fields.pop('__key__', None)
             obj = _create_obj(ModelBase, session, store,
                               model_name, creator, key, fields)
-            session.add(obj)
+            session.merge(obj)
     session.commit()
     return store
