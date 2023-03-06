@@ -196,9 +196,9 @@ def load(ModelBase, session, fixture_text, loader=None):
     if not isinstance(data, list):
         raise ValueError('Top level YAML should be sequence (list).')
 
-    return load_dict(ModelBase, session, data)
+    return load_list(ModelBase, session, data)
 
-def load_dict(ModelBase, session, data: list) -> Store:
+def load_list(ModelBase, session, data: list) -> Store:
     # make sure backref attributes are created
     sqlalchemy.orm.configure_mappers()
 
