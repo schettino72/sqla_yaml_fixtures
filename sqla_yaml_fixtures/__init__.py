@@ -59,7 +59,7 @@ def _get_rel_col_for(src_model, target_model_name):
 
 
 def _create_obj(ModelBase, session, store,
-                model_name, creator, key, values):
+                model_name, creator, values):
     """create obj from values
 
     :var store (Store):
@@ -69,6 +69,9 @@ def _create_obj(ModelBase, session, store,
     :var key (str): key for obj in Store
     :var values (dict): column:value
     """
+
+    key = values.pop('__key__', None)
+
     # get reference to SqlAlchemy Mapper
     model = from_registry(ModelBase, model_name)
 
@@ -114,7 +117,7 @@ def _create_obj(ModelBase, session, store,
                 else:
                     scalars[name] = _create_obj(
                         ModelBase, session, store,
-                        rel_name, None, None, value)
+                        rel_name, None, value)
 
             # a reference (key) was passed, get obj from store
             elif isinstance(value, str):
@@ -148,7 +151,7 @@ def _create_obj(ModelBase, session, store,
                     else:
                         scalars[name] = [_create_obj(
                             ModelBase, session, store,
-                            rel_name, None, None, v)
+                            rel_name, None, v)
                             for v in value]
 
             # nested field which object was just created
@@ -171,7 +174,7 @@ def _create_obj(ModelBase, session, store,
     for rel_name, back_populates, value in nested:
         value[back_populates] = obj
         _create_obj(ModelBase, session, store,
-                    rel_name, None, None, value)
+                    rel_name, None, value)
 
     # save obj in store
     if key:
@@ -220,9 +223,8 @@ def load_dict(ModelBase, session, data: list) -> Store:
             msg = '`{}` must contain a sequence(list).'
             raise ValueError(msg.format(model_name))
         for fields in instances:
-            key = fields.pop('__key__', None)
             obj = _create_obj(ModelBase, session, store,
-                              model_name, creator, key, fields)
+                              model_name, creator, fields)
             session.merge(obj)
     session.commit()
     return store
