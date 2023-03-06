@@ -185,9 +185,6 @@ def _create_obj(ModelBase, session, store,
 
 
 def load(ModelBase, session, fixture_text, loader=None):
-    # make sure backref attributes are created
-    sqlalchemy.orm.configure_mappers()
-
     # Data should be sequence of entry per mapper name
     # to enforce that FKs (__key__ entries) are defined first
     if loader is None:
@@ -195,6 +192,12 @@ def load(ModelBase, session, fixture_text, loader=None):
     data = yaml.load(fixture_text, Loader=loader)
     if not isinstance(data, list):
         raise ValueError('Top level YAML should be sequence (list).')
+
+    return load_dict(ModelBase, session, data)
+
+def load_dict(ModelBase, session, data: list) -> Store:
+    # make sure backref attributes are created
+    sqlalchemy.orm.configure_mappers()
 
     store = Store()
     for model_entry in data:
