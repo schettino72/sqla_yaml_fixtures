@@ -1,4 +1,13 @@
 
+1.2.0 (unreleased)
+==================
+
+- drop support for python 3.6, 3.7
+- add support for 3.10, 3.11
+- drop support for SQLAlchemy < 1.4
+- add support for SQLAlchemy >= 2.0
+
+
 1.1.0 (2021-03-29)
 ==================
 

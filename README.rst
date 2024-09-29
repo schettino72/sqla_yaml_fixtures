@@ -14,7 +14,7 @@ Load YAML data fixtures for SQLAlchemy
 
 .. image:: https://github.com/schettino72/sqla_yaml_fixtures/workflows/test/badge.svg
    :target: https://github.com/schettino72/sqla_yaml_fixtures/actions?query=workflow%3Atest
-   
+
 .. image:: https://ko-fi.com/img/githubbutton_sm.svg
    :target: https://ko-fi.com/A0A23ZL4A
 

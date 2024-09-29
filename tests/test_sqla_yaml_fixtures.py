@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, ForeignKey, Table
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import relationship, backref
 import pytest
@@ -63,7 +63,7 @@ class User(BaseModel):
     id = Column(Integer, primary_key=True)
     username = Column(String(150), nullable=False, unique=True)
     email = Column(String(254), unique=True)
-    roles = relationship('Role')
+    roles = relationship('Role', overlaps="user")
     friends = relationship(
         'User',
         secondary=user_friends,
@@ -83,7 +83,7 @@ class Role(BaseModel):
     id = Column(Integer, primary_key=True)
     name = Column(String(150), nullable=False)
     user_id = Column(ForeignKey('user.id'), nullable=False)
-    user = relationship('User')
+    user = relationship('User', overlaps="roles")
 
 
 class Profile(BaseModel):
