@@ -6,6 +6,7 @@
 - add support for 3.10, 3.11, 3.12
 - drop support for SQLAlchemy < 1.4
 - add support for SQLAlchemy >= 2.0
+- add load_core(), support core SQLAlchemy without ORM
 
 
 1.1.0 (2021-03-29)
