@@ -3,7 +3,7 @@
 ==================
 
 - drop support for python 3.6, 3.7
-- add support for 3.10, 3.11
+- add support for 3.10, 3.11, 3.12
 - drop support for SQLAlchemy < 1.4
 - add support for SQLAlchemy >= 2.0
 
