@@ -9,11 +9,11 @@ __version__ = (1, 2, 'dev0')
 
 
 class Store:
-    '''Simple key-value store
+    """Simple key-value store
 
     Key might be a dot-separated where each name after a dot
     represents and attribute of the value-object.
-    '''
+    """
 
     def __init__(self):
         self._store = {}
@@ -47,9 +47,9 @@ def from_registry(Base, model_name):
 
 @lru_cache()
 def _get_rel_col_for(src_model, target_model_name):
-    '''find the column in src_model that is a relationship to target_model
+    """find the column in src_model that is a relationship to target_model
     @return column name
-    '''
+    """
     # FIXME deal with self-referential m2m
     for name, col in src_model._sa_class_manager.items():
         try:
@@ -63,8 +63,8 @@ def _get_rel_col_for(src_model, target_model_name):
 
 
 def _create_obj(ModelBase, session, store,
-                model_name, creator, key, values):
-    '''create obj from values
+                model_name, creator, values):
+    """create obj from values
 
     :var store (Store):
     :var model_name (str): name of Model/Mapper
@@ -72,7 +72,10 @@ def _create_obj(ModelBase, session, store,
                         Takes 2 parameters (session, values)
     :var key (str): key for obj in Store
     :var values (dict): column:value
-    '''
+    """
+
+    key = values.pop('__key__', None)
+
     # get reference to SqlAlchemy Mapper
     model = from_registry(ModelBase, model_name)
 
@@ -118,7 +121,7 @@ def _create_obj(ModelBase, session, store,
                 else:
                     scalars[name] = _create_obj(
                         ModelBase, session, store,
-                        rel_name, None, None, value)
+                        rel_name, None, value)
 
             # a reference (key) was passed, get obj from store
             elif isinstance(value, str):
@@ -152,7 +155,7 @@ def _create_obj(ModelBase, session, store,
                     else:
                         scalars[name] = [_create_obj(
                             ModelBase, session, store,
-                            rel_name, None, None, v)
+                            rel_name, None, v)
                             for v in value]
 
             # nested field which object was just created
@@ -175,7 +178,7 @@ def _create_obj(ModelBase, session, store,
     for rel_name, back_populates, value in nested:
         value[back_populates] = obj
         _create_obj(ModelBase, session, store,
-                    rel_name, None, None, value)
+                    rel_name, None, value)
 
     # save obj in store
     if key:
@@ -189,9 +192,6 @@ def _create_obj(ModelBase, session, store,
 
 
 def load(ModelBase, session, fixture_text, loader=None):
-    # make sure backref attributes are created
-    sqlalchemy.orm.configure_mappers()
-
     # Data should be sequence of entry per mapper name
     # to enforce that FKs (__key__ entries) are defined first
     if loader is None:
@@ -199,6 +199,12 @@ def load(ModelBase, session, fixture_text, loader=None):
     data = yaml.load(fixture_text, Loader=loader)
     if not isinstance(data, list):
         raise ValueError('Top level YAML should be sequence (list).')
+
+    return load_list(ModelBase, session, data)
+
+def load_list(ModelBase, session, data: list) -> Store:
+    # make sure backref attributes are created
+    sqlalchemy.orm.configure_mappers()
 
     store = Store()
     for model_entry in data:
@@ -221,10 +227,9 @@ def load(ModelBase, session, fixture_text, loader=None):
             msg = '`{}` must contain a sequence(list).'
             raise ValueError(msg.format(model_name))
         for fields in instances:
-            key = fields.pop('__key__', None)
             obj = _create_obj(ModelBase, session, store,
-                              model_name, creator, key, fields)
-            session.add(obj)
+                              model_name, creator, fields)
+            session.merge(obj)
     session.commit()
     return store
 
