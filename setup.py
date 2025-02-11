@@ -7,7 +7,7 @@ def readme():
 
 setup(name='sqla_yaml_fixtures',
       description='Load YAML data fixtures for SQLAlchemy',
-      version='1.2.dev0',
+      version='1.2.0',
       license='MIT',
       author='Eduardo Naufel Schettino',
       author_email='schettino72@gmail.com',

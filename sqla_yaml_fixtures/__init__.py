@@ -5,7 +5,7 @@ import sqlalchemy
 from sqlalchemy.orm.relationships import RelationshipProperty
 
 
-__version__ = (1, 2, 'dev0')
+__version__ = (1, 2, 0)
 
 
 class Store:

@@ -71,8 +71,10 @@ Installation
 API
 ---
 
-This module expose a single function
-``load(ModelBase, session, fixture_text, loader=None)``
+ORM
+++++
+
+``def load(ModelBase, session, fixture_text, loader=None)``
 
 Where:
 
@@ -135,6 +137,12 @@ Note: the `load()` function performs a `session.commit()`.
    By default YAML is loaded using `yaml.FullLoader`, this is insecure when
    loading unstrusted input. It is possible to overwrite the loaded by setting
    `loader` param in the `load()` function.
+
+
+Core / Non-ORM
++++++++++++++++
+
+``async def load_core(metadata, connection, fixture_text, loader=None)``
 
 
 Command Line
