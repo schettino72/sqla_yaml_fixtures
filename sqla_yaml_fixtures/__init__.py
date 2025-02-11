@@ -251,8 +251,10 @@ async def _insert_row(tables, connection, store, table_name, key, values):
     # Resolve references in values (i.e., nested objects)
     resolved_values = {}
     for name, value in values.items():
-        # print(name, value)
+        # print('sqlaf - insert row', table, name, value)
         col = table.c.get(name)
+        if col is None:
+            raise Exception(f'Inavlid column name: {table}.{name} = {value}')
         if col.foreign_keys:
             assert len(col.foreign_keys) == 1
             fk = next(iter(col.foreign_keys))
